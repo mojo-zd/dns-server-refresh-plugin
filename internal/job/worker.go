@@ -1,14 +1,23 @@
 package job
 
-import "github.com/Sirupsen/logrus"
+import (
+	"sync"
 
-var (
-	stop = make(chan string) // the jobs to be stop
+	"github.com/Sirupsen/logrus"
 )
 
+type WatchCallbackFunc func(args ...interface{})
+
 type Worker struct {
-	unRegistry chan string
-	jobs       []*HealthJob
+	stop chan string // the jobs to be stop
+	jobs []*HealthJob
+	sync.Mutex
+}
+
+// NewWorker ...
+func NewWorker() *Worker {
+	worker := &Worker{stop: make(chan string, 10)}
+	return worker
 }
 
 // Run ...
@@ -30,9 +39,15 @@ func (w *Worker) AddJob(url string) {
 	job.HealthCheck()
 }
 
-// Watch
-func (w *Worker) Watch() {
-
+// Watch ...
+func (w *Worker) Watch(callback WatchCallbackFunc, args ...interface{}) {
+	for {
+		url := <-w.stop
+		w.remove(url)
+		if callback != nil {
+			callback(args)
+		}
+	}
 }
 
 func (w *Worker) exist(url string) (exist bool) {
@@ -47,10 +62,12 @@ func (w *Worker) exist(url string) (exist bool) {
 
 // remove  remove job from w.jobs
 func (w *Worker) remove(url string) {
+	w.Lock()
+	defer w.Unlock()
 	for i, j := range w.jobs {
 		if j.URL == url {
 			j = nil
-			w.jobs = append(w.jobs[:j], w.jobs[i+1:]...)
+			w.jobs = append(w.jobs[:i], w.jobs[i+1:]...)
 		}
 	}
 }

@@ -1,10 +1,12 @@
 package job
 
 import (
-	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/mojo-zd/dns-server-refresh-plugin/internal/variables"
+	"github.com/mojo-zd/dns-server-refresh-plugin/pkg/httplib"
 )
 
 type HealthJob struct {
@@ -18,7 +20,12 @@ func (j HealthJob) HealthCheck() {
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Println("corn task start . . .")
+				response, err := httplib.NewHttpRestTemplate().Get(j.URL)
+				if err != nil || response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusBadRequest {
+					logrus.Warnf("%s not health url", j.URL)
+					j.worker.stop <- j.URL
+					return
+				}
 			}
 		}
 	}()

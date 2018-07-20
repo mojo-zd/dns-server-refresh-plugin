@@ -18,11 +18,23 @@ func TestDnsClient(t *testing.T) {
 func TestTimer(t *testing.T) {
 	ticker := time.NewTicker(time.Second * 5)
 	i := 0
+	done := make(chan int)
+
+	go func() {
+		time.Sleep(10 * time.Second)
+		done <- 10
+	}()
+
 	for {
 		select {
 		case <-ticker.C:
 			i += 5
 			fmt.Println("print ", i)
+		case m := <-done:
+			fmt.Println("done is ", m)
+			if m == 10 {
+				return
+			}
 		}
 	}
 }
