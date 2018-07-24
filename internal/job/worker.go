@@ -27,6 +27,14 @@ func (w *Worker) Run(tasks map[string]interface{}) {
 	}
 }
 
+// Stop stop worker
+func (w *Worker) Stop() {
+	for _, j := range w.jobs {
+		w.Remove(j.URL)
+		j = nil
+	}
+}
+
 // AddJob ...
 func (w *Worker) AddJob(url string) {
 	if w.exist(url) {
@@ -43,7 +51,7 @@ func (w *Worker) AddJob(url string) {
 func (w *Worker) Watch(callback WatchCallbackFunc, args ...interface{}) {
 	for {
 		url := <-w.stop
-		w.remove(url)
+		w.Remove(url)
 		if callback != nil {
 			callback(args)
 		}
@@ -60,8 +68,8 @@ func (w *Worker) exist(url string) (exist bool) {
 	return
 }
 
-// remove  remove job from w.jobs
-func (w *Worker) remove(url string) {
+// Remove  Remove job from w.jobs
+func (w *Worker) Remove(url string) {
 	w.Lock()
 	defer w.Unlock()
 	for i, j := range w.jobs {

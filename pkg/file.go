@@ -49,3 +49,11 @@ func DeleteFile(name string) (err error) {
 	}
 	return
 }
+
+// CreateDir ...
+func CreateDir(path string) (err error) {
+	if FileNotExist(path) {
+		err = os.MkdirAll(path, os.ModePerm)
+	}
+	return
+}

@@ -60,6 +60,12 @@ func (c *DnsClient) Write(url string, action variables.Action) (err error) {
 	return
 }
 
+// Read read all records
+func (c *DnsClient) Read() (m map[string]interface{}, err error) {
+	m, err = c.readFile()
+	return
+}
+
 func (c client) decompose(url string) (ss []string) {
 	s := url
 	if strings.HasPrefix(url, HttpPrefix) {

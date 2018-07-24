@@ -13,7 +13,7 @@ import (
 	"github.com/Sirupsen/logrus"
 )
 
-var defaultTimeout = time.Second * 10
+var defaultTimeout = time.Second * 15
 
 type HttpRestTemplate struct {
 	method  string
